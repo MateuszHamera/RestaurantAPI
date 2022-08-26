@@ -26,7 +26,7 @@ namespace RestaurantAPI.Middleware
                 _logger.LogError(ex, ex.Message);
 
                 context.Response.StatusCode = 500;
-                await context.Response.WriteAsync("Magic happend");
+                await context.Response.WriteAsync("Magic happens");
             }
         }
     }

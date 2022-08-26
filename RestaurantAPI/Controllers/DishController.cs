@@ -4,7 +4,7 @@ using RestaurantAPI.Services;
 
 namespace RestaurantAPI.Controllers
 {
-    [Route("/api/restaurant/{restaurantId}/dish")]
+    [Route("api/restaurant/{restaurantId}/dish")]
     public class DishController : ControllerBase
     {
         private readonly IDishService _dishService;

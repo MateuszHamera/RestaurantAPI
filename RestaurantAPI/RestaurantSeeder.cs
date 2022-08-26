@@ -18,11 +18,29 @@ namespace RestaurantAPI
                 if(!_restaurantDbContext.Restaurants.Any())
                 {
                     var restaurants = GetRestaurants();
-                    _restaurantDbContext.Restaurants.AddRange(restaurants);
 
+                    _restaurantDbContext.Restaurants.AddRange(restaurants);
+                    _restaurantDbContext.SaveChanges();
+                }
+
+                if(!_restaurantDbContext.Roles.Any())
+                {
+                    IEnumerable<Role> roles = GetRoles();
+
+                    _restaurantDbContext.Roles.AddRange(roles);
                     _restaurantDbContext.SaveChanges();
                 }
             }
+        }
+
+        private IEnumerable<Role> GetRoles()
+        {
+            return new List<Role>()
+            {
+                new Role() { Name = "User" },
+                new Role() { Name = "Manager" },
+                new Role() { Name = "Admin" },
+            };
         }
 
         private IEnumerable<Restaurant> GetRestaurants()
