@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using NLog.Web;
 using RestaurantAPI;
 using RestaurantAPI.Entities;
@@ -27,6 +28,8 @@ builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 builder.Services.AddScoped<ErrorHandlingMiddleware>();
 builder.Services.AddScoped<RequestTimeMiddleware>();
+
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
 var app = builder.Build();
 // Configure the HTTP request pipeline.
