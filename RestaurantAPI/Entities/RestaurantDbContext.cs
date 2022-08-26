@@ -37,7 +37,7 @@ namespace RestaurantAPI.Entities
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(_connectionStringWork);
+            optionsBuilder.UseSqlServer(_connectionString);
         }
     }
 }

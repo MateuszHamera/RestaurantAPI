@@ -11,22 +11,27 @@ namespace RestaurantAPI.Services
     }
     public class AccountService : IAccountService
     {
-        private readonly RestaurantDbContext _restaurantDbContext;
+        private readonly RestaurantDbContext _context;
         private readonly IPasswordHasher<User> _passwordHasher;
         private readonly IMapper _mapper;
 
         public AccountService(
-            RestaurantDbContext restaurantDbContext,
+            RestaurantDbContext context,
             IPasswordHasher<User> passwordHasher,
             IMapper mapper)
         {
-            _restaurantDbContext = restaurantDbContext;
+            _context = context;
             _passwordHasher = passwordHasher;
             _mapper = mapper;
         }
         public void RegisterUser(RegisterUserDto registerUserDto)
         {
+            var user = _mapper.Map<User>(registerUserDto);
 
+            user.PasswordHash = _passwordHasher.HashPassword(user, registerUserDto.Password);
+
+            _context.Users.Add(user);
+            _context.SaveChanges();
         }
     }
 }
