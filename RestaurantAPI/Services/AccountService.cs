@@ -20,7 +20,7 @@ namespace RestaurantAPI.Services
         }
         public void RegisterUser(RegisterUserDto registerUserDto)
         {
-            
+            var test = "test";
         }
     }
 }
