@@ -27,6 +27,7 @@ namespace RestaurantAPI.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "Min20Years")]
         public ActionResult<IEnumerable<RestaurantDto>> GetAll()
         {
             return Ok(_restaurantService.GetAll());
