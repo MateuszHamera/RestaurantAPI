@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using RestaurantAPI.Models;
 using RestaurantAPI.Services;
 
 namespace RestaurantAPI.Controllers
 {
     [Route("api/restaurant/{restaurantId}/dish")]
+    [Authorize]
     public class DishController : ControllerBase
     {
         private readonly IDishService _dishService;
@@ -15,6 +17,7 @@ namespace RestaurantAPI.Controllers
         }
 
         [HttpGet("{dishId}")]
+        [AllowAnonymous]
         public ActionResult<DishDto> GetById([FromRoute]int restaurantId, [FromRoute]int dishId)
         {
             return Ok(_dishService.GetById(restaurantId, dishId));
