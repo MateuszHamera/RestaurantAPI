@@ -15,6 +15,7 @@ namespace RestaurantAPI.Services
     {
         void RegisterUser(RegisterUserDto registerUserDto);
         string Login(LoginUserDto loginUserDto);
+        void ChangeRoleForUser(int userId, int roleId);
     }
     public class AccountService : IAccountService
     {
@@ -40,9 +41,30 @@ namespace RestaurantAPI.Services
             var user = _mapper.Map<User>(registerUserDto);
 
             user.PasswordHash = _passwordHasher.HashPassword(user, registerUserDto.Password);
+            user.RoleId = 1;
 
             _context.Users.Add(user);
             _context.SaveChanges();
+        }
+
+        public void ChangeRoleForUser(int userId, int roleId)
+        {
+            var user = _context.Users
+                .Include(u => u.Role)
+                .SingleOrDefault(u => u.Id == userId);
+
+            if(user is null)
+                throw new BadUserOrRoleException("Invalid userId or roleId");
+
+            var role = _context.Roles.SingleOrDefault(r => r.Id == roleId);
+
+            if(role is null)
+                throw new BadUserOrRoleException("Invalid userId or roleId");
+
+            user.RoleId = roleId;
+            user.Role = role;
+
+            _context.SaveChanges();                    
         }
         public string Login(LoginUserDto loginUserDto)
         {
@@ -62,8 +84,8 @@ namespace RestaurantAPI.Services
             var claims = new List<Claim>()
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.FirstName),
-                new Claim(ClaimTypes.Role, user.Role.Name)
+                new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),
+                new Claim(ClaimTypes.Role, $"{user.Role.Name}")
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_authenticationSettings.JwtKey));

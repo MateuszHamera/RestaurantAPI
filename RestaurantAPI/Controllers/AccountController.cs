@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using RestaurantAPI.Models;
 using RestaurantAPI.Services;
 
@@ -30,5 +31,13 @@ namespace RestaurantAPI.Controllers
             return Ok(token);
         }
 
+        [HttpPost("{userId}/role/{roleId}")]
+        [Authorize(Roles = "Admin")]
+        public ActionResult ChangeRoleForUser([FromRoute]int userId, [FromRoute]int roleId)
+        {
+            _accountService.ChangeRoleForUser(userId, roleId);
+
+            return Ok();
+        }
     }
 }
