@@ -46,7 +46,9 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("Min20Years", 
         builder => builder.AddRequirements(new MinimalAgeRequirment(20)));
 });
+
 builder.Services.AddScoped<IAuthorizationHandler, MinimalAgeRequirmentHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, ResourceOperationRequirementHandler>();
 
 // Add services to the container.
 builder.Services.AddControllers().AddFluentValidation();

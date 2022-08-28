@@ -6,11 +6,16 @@ namespace RestaurantAPI.Authorization
     {
         protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, MinimalAgeRequirment requirement)
         {
-            var dateofBirth = DateTime.Parse(context.User.FindFirst(u => u.Type == "DateOfBirth").Value);
+            var date = context.User.FindFirst(u => u.Type == "DateOfBirth")?.Value;
 
-            if(dateofBirth.AddYears(requirement.MinAge) < DateTime.Today)
+            if(!string.IsNullOrEmpty(date))
             {
-                context.Succeed(requirement);
+                var dateofBirth = DateTime.Parse(date);
+
+                if(dateofBirth.AddYears(requirement.MinAge) < DateTime.Today)
+                {
+                    context.Succeed(requirement);
+                }
             }
 
             return Task.CompletedTask;

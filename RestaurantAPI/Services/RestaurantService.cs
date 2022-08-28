@@ -3,6 +3,9 @@ using RestaurantAPI.Entities;
 using RestaurantAPI.Models;
 using Microsoft.EntityFrameworkCore;
 using RestaurantAPI.Exceptions;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using RestaurantAPI.Authorization;
 
 namespace RestaurantAPI.Services
 {
@@ -10,9 +13,9 @@ namespace RestaurantAPI.Services
     {
         RestaurantDto GetById(int id);
         IEnumerable<RestaurantDto> GetAll();
-        int Create(RestaurantDto restaurantDto);
-        void Delete(int id);
-        void Update(int id, UpdateRestaurantDto putRestaurantDto);
+        int Create(RestaurantDto restaurantDto, int userId);
+        void Delete(int id, ClaimsPrincipal user);
+        void Update(int id, UpdateRestaurantDto updateRestaurantDto, ClaimsPrincipal user);
     }
 
     public class RestaurantService : IRestaurantService
@@ -20,16 +23,19 @@ namespace RestaurantAPI.Services
         private readonly RestaurantDbContext _restaurantDbContext;
         private readonly IMapper _mapper;
         private readonly ILogger<RestaurantService> _logger;
+        private readonly IAuthorizationService _authorizationService;
 
         public RestaurantService(
             RestaurantDbContext restaurantDbContext,
             IMapper mapper,
-            ILogger<RestaurantService> logger
+            ILogger<RestaurantService> logger,
+            IAuthorizationService authorizationService
         )
         {
             _restaurantDbContext = restaurantDbContext;
             _mapper = mapper;
             _logger = logger;
+            _authorizationService = authorizationService;
         }
 
         public RestaurantDto GetById(int id)
@@ -57,9 +63,10 @@ namespace RestaurantAPI.Services
             return _mapper.Map<List<RestaurantDto>>(restaurants);
         }
 
-        public int Create(RestaurantDto restaurantDto)
+        public int Create(RestaurantDto restaurantDto, int userId)
         {
             var restaurant = _mapper.Map<Restaurant>(restaurantDto);
+            restaurant.CreatedById = userId;
 
             _restaurantDbContext.Add(restaurant);
             _restaurantDbContext.SaveChanges();
@@ -67,7 +74,7 @@ namespace RestaurantAPI.Services
             return restaurant.Id;
         }
 
-        public void Delete(int id)
+        public void Delete(int id, ClaimsPrincipal user)
         {
             var restaurant = _restaurantDbContext
                 .Restaurants
@@ -75,12 +82,20 @@ namespace RestaurantAPI.Services
 
             if(restaurant == null)
                 throw new NotFoundException("Restaurant not found");
+
+            var authorization = _authorizationService.AuthorizeAsync(user, restaurant,
+                new ResourceOperationRequirement(Operation.Update)).Result;
+
+            if(!authorization.Succeeded)
+                throw new ForbidException("Can't update restaurant");
 
             _restaurantDbContext.Remove(restaurant);
             _restaurantDbContext.SaveChanges();
         }
 
-        public void Update(int id, UpdateRestaurantDto putRestaurantDto)
+        public void Update(int id, 
+            UpdateRestaurantDto updateRestaurantDto,
+            ClaimsPrincipal user)
         {
             var restaurant = _restaurantDbContext
                 .Restaurants
@@ -89,9 +104,15 @@ namespace RestaurantAPI.Services
             if(restaurant == null)
                 throw new NotFoundException("Restaurant not found");
 
-            restaurant.Name = putRestaurantDto.Name;
-            restaurant.Description = putRestaurantDto.Description;
-            restaurant.HasDelivery = putRestaurantDto.HasDelivery;
+            var authorization = _authorizationService.AuthorizeAsync(user, restaurant,
+                new ResourceOperationRequirement(Operation.Update)).Result;
+
+            if(!authorization.Succeeded)
+                throw new ForbidException("Can't update restaurant");
+
+            restaurant.Name = updateRestaurantDto.Name;
+            restaurant.Description = updateRestaurantDto.Description;
+            restaurant.HasDelivery = updateRestaurantDto.HasDelivery;
 
             _restaurantDbContext.SaveChanges();
         }
