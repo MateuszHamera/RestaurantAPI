@@ -6,10 +6,14 @@ namespace RestaurantAPI.Entities
     public class RestaurantDbContext : DbContext
     {
         private readonly string _connectionString = "Server=DESKTOP-6RAT31V;Database=RestaurantsDb;Trusted_Connection=True;";
+        private readonly string _connectionStringWork = @"Server=PROG2\SQLEXPRESS;Database=RestaurantsDb;Trusted_Connection=True;";
 
         public DbSet<Restaurant> Restaurants { get; set; }
         public DbSet<Address> Addresses { get; set; }
         public DbSet<Dish> Dishes { get; set; }
+
+        public DbSet<User> Users { get; set; }
+        public DbSet<Role> Roles { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -23,6 +27,12 @@ namespace RestaurantAPI.Entities
 
             modelBuilder.Entity<Dish>()
                 .Property(d => d.Name).IsRequired();
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.Email).IsRequired();
+
+            modelBuilder.Entity<Role>()
+                .Property(r => r.Name).IsRequired();
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

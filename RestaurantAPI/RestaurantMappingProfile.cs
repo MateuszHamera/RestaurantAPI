@@ -18,19 +18,7 @@ namespace RestaurantAPI
                 .ReverseMap();
 
             CreateMap<Dish, DishDto>().ReverseMap();
-
-            //CreateMap<RestaurantDto, Restaurant>()
-            //    .ForMember(
-            //    r => r.Address.Street, 
-            //    c => c.MapFrom(
-            //        dto => new Address() 
-            //        { 
-            //            City = dto.City, 
-            //            Street = dto.Street, 
-            //            PostalCode = dto.PostalCode
-            //        }));
-
-            //CreateMap<DishDto, Dish>();
+            CreateMap<User, RegisterUserDto>().ReverseMap();
         }
     }
 }

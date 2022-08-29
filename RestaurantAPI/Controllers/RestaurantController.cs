@@ -1,12 +1,15 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RestaurantAPI.Models;
 using RestaurantAPI.Services;
+using System.Security.Claims;
 
 namespace RestaurantAPI.Controllers
 {
     [Route("api/restaurant")]
     [ApiController]
+    [Authorize]
     public class RestaurantController : ControllerBase
     {
         private readonly IRestaurantService _restaurantService;
@@ -25,6 +28,7 @@ namespace RestaurantAPI.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "Min20Years")]
         public ActionResult<IEnumerable<RestaurantDto>> GetAll()
         {
             return Ok(_restaurantService.GetAll());
@@ -46,7 +50,9 @@ namespace RestaurantAPI.Controllers
         [HttpPost]
         public ActionResult CreateRestaurant([FromBody]RestaurantDto restaurantDto)
         {
-            var id = _restaurantService.Create(restaurantDto);
+            var userId = User?.FindFirst(u => u.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            var id = _restaurantService.Create(restaurantDto, int.Parse(userId));
 
             return Created($"/api/restaurant/{id}", null);
         }
@@ -54,7 +60,7 @@ namespace RestaurantAPI.Controllers
         [HttpDelete("{id}")]
         public ActionResult Delete([FromRoute] int id)
         {
-            _restaurantService.Delete(id);
+            _restaurantService.Delete(id, User);
 
              return NoContent();
         }
@@ -62,7 +68,7 @@ namespace RestaurantAPI.Controllers
         [HttpPut("{id}")]
         public ActionResult Update([FromRoute] int id, [FromBody]UpdateRestaurantDto putRestaurantDto)
         {
-            _restaurantService.Update(id, putRestaurantDto);
+            _restaurantService.Update(id, putRestaurantDto, User);
 
             return Ok();
         }
