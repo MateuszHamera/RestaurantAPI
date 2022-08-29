@@ -20,5 +20,5 @@ jobs:
       - name: Build
         run: dotnet Build --no-restore
       - name: Test
-        run dotnet test
+        run: dotnet test
           
