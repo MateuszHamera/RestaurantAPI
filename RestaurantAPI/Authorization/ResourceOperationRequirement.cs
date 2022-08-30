@@ -16,6 +16,6 @@ namespace RestaurantAPI.Authorization
             Operation = operation;
         }
 
-        public Operation Operation { get; }
+        public Operation Operation { get; init; }
     }
 }

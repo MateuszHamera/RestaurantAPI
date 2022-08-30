@@ -28,7 +28,7 @@ namespace RestaurantAPI.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "Min20Years")]
+        [Authorize(Policy = "CreatedRestaurants")]
         public async Task<IEnumerable<RestaurantDto>> GetAllAsync()
         {
             return await _restaurantService.GetAllAsync();

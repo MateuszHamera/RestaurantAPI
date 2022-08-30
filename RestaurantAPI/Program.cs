@@ -45,10 +45,13 @@ builder.Services.AddAuthorization(options =>
         builder => builder.RequireClaim("Nationality"));
     options.AddPolicy("Min20Years", 
         builder => builder.AddRequirements(new MinimalAgeRequirment(20)));
+    options.AddPolicy("CreatedRestaurants",
+    builder => builder.AddRequirements(new CreatedRestaurantRequirment(2)));
 });
 
 builder.Services.AddScoped<IAuthorizationHandler, MinimalAgeRequirmentHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, ResourceOperationRequirementHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, CreatedRestaurantRequirmentHandler>();
 
 // Add services to the container.
 builder.Services.AddControllers().AddFluentValidation();
