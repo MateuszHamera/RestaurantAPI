@@ -16,26 +16,26 @@ namespace RestaurantAPI.Controllers
         }
 
         [HttpPost("register")]
-        public ActionResult Register([FromBody]RegisterUserDto registerUserDto)
+        public async Task<IActionResult> RegisterAsync([FromBody]RegisterUserDto registerUserDto)
         {
-            _accountService.RegisterUser(registerUserDto);
+            await _accountService.RegisterUserAsync(registerUserDto);
 
             return Ok();
         }
 
         [HttpPost("login")]
-        public ActionResult Login([FromBody]LoginUserDto loginUserDto)
+        public async Task<IActionResult> LoginAsync([FromBody]LoginUserDto loginUserDto)
         {
-            string token = _accountService.Login(loginUserDto);
+            string token = await _accountService.LoginAsync(loginUserDto);
 
             return Ok(token);
         }
 
         [HttpPost("{userId}/role/{roleId}")]
         [Authorize(Roles = "Admin")]
-        public ActionResult ChangeRoleForUser([FromRoute]int userId, [FromRoute]int roleId)
+        public async Task<IActionResult> ChangeRoleForUserAsync([FromRoute]int userId, [FromRoute]int roleId)
         {
-            _accountService.ChangeRoleForUser(userId, roleId);
+            await _accountService.ChangeRoleForUserAsync(userId, roleId);
 
             return Ok();
         }

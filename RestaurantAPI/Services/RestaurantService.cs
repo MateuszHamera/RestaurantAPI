@@ -11,11 +11,11 @@ namespace RestaurantAPI.Services
 {
     public interface IRestaurantService
     {
-        RestaurantDto GetById(int id);
-        IEnumerable<RestaurantDto> GetAll();
-        int Create(RestaurantDto restaurantDto, int userId);
-        void Delete(int id, ClaimsPrincipal user);
-        void Update(int id, UpdateRestaurantDto updateRestaurantDto, ClaimsPrincipal user);
+        Task<RestaurantDto> GetByIdAsync(int id);
+        Task<IEnumerable<RestaurantDto>> GetAllAsync();
+        Task<int> CreateAsync(RestaurantDto restaurantDto);
+        Task DeleteAsync(int id);
+        Task UpdateAsync(int id, UpdateRestaurantDto updateRestaurantDto);
     }
 
     public class RestaurantService : IRestaurantService
@@ -24,27 +24,30 @@ namespace RestaurantAPI.Services
         private readonly IMapper _mapper;
         private readonly ILogger<RestaurantService> _logger;
         private readonly IAuthorizationService _authorizationService;
+        private readonly IUserContextService _userContextService;
 
         public RestaurantService(
             RestaurantDbContext restaurantDbContext,
             IMapper mapper,
             ILogger<RestaurantService> logger,
-            IAuthorizationService authorizationService
+            IAuthorizationService authorizationService,
+            IUserContextService userContextService
         )
         {
             _restaurantDbContext = restaurantDbContext;
             _mapper = mapper;
             _logger = logger;
             _authorizationService = authorizationService;
+            _userContextService = userContextService;
         }
 
-        public RestaurantDto GetById(int id)
+        public async Task<RestaurantDto> GetByIdAsync(int id)
         {
-            var restaurant = _restaurantDbContext
+            var restaurant = await _restaurantDbContext
                 .Restaurants
                 .Include(x => x.Address)
                 .Include(x => x.Dishes)
-                .SingleOrDefault(x => x.Id == id);
+                .SingleOrDefaultAsync(x => x.Id == id);
 
             if(restaurant == null)
                 throw new NotFoundException("Restaurant not found"); 
@@ -52,59 +55,57 @@ namespace RestaurantAPI.Services
             return _mapper.Map<RestaurantDto>(restaurant);
         }
 
-        public IEnumerable<RestaurantDto> GetAll()
+        public async Task<IEnumerable<RestaurantDto>> GetAllAsync()
         {
-            var restaurants = _restaurantDbContext
+            var restaurants = await _restaurantDbContext
                 .Restaurants
                 .Include(x => x.Address)
                 .Include(x => x.Dishes)
-                .ToList();
+                .ToListAsync();
 
             return _mapper.Map<List<RestaurantDto>>(restaurants);
         }
 
-        public int Create(RestaurantDto restaurantDto, int userId)
+        public async Task<int> CreateAsync(RestaurantDto restaurantDto)
         {
             var restaurant = _mapper.Map<Restaurant>(restaurantDto);
-            restaurant.CreatedById = userId;
+            restaurant.CreatedById = _userContextService.UserId;
 
-            _restaurantDbContext.Add(restaurant);
-            _restaurantDbContext.SaveChanges();
+            await _restaurantDbContext.AddAsync(restaurant);
+            await _restaurantDbContext.SaveChangesAsync();
 
             return restaurant.Id;
         }
 
-        public void Delete(int id, ClaimsPrincipal user)
+        public async Task DeleteAsync(int id)
         {
-            var restaurant = _restaurantDbContext
+            var restaurant = await _restaurantDbContext
                 .Restaurants
-                .SingleOrDefault(x => x.Id == id);
+                .SingleOrDefaultAsync(x => x.Id == id);
 
             if(restaurant == null)
                 throw new NotFoundException("Restaurant not found");
 
-            var authorization = _authorizationService.AuthorizeAsync(user, restaurant,
-                new ResourceOperationRequirement(Operation.Update)).Result;
+            var authorization = _authorizationService.AuthorizeAsync(_userContextService.User, restaurant,
+                new ResourceOperationRequirement(Operation.Delete)).Result;
 
             if(!authorization.Succeeded)
                 throw new ForbidException("Can't update restaurant");
 
             _restaurantDbContext.Remove(restaurant);
-            _restaurantDbContext.SaveChanges();
+            await _restaurantDbContext.SaveChangesAsync();
         }
 
-        public void Update(int id, 
-            UpdateRestaurantDto updateRestaurantDto,
-            ClaimsPrincipal user)
+        public async Task UpdateAsync(int id, UpdateRestaurantDto updateRestaurantDto)
         {
-            var restaurant = _restaurantDbContext
+            var restaurant = await _restaurantDbContext
                 .Restaurants
-                .SingleOrDefault(x => x.Id == id);
+                .SingleOrDefaultAsync(x => x.Id == id);
 
             if(restaurant == null)
                 throw new NotFoundException("Restaurant not found");
 
-            var authorization = _authorizationService.AuthorizeAsync(user, restaurant,
+            var authorization = _authorizationService.AuthorizeAsync(_userContextService.User, restaurant,
                 new ResourceOperationRequirement(Operation.Update)).Result;
 
             if(!authorization.Succeeded)
@@ -114,7 +115,7 @@ namespace RestaurantAPI.Services
             restaurant.Description = updateRestaurantDto.Description;
             restaurant.HasDelivery = updateRestaurantDto.HasDelivery;
 
-            _restaurantDbContext.SaveChanges();
+            await _restaurantDbContext.SaveChangesAsync();
         }
     }
 }

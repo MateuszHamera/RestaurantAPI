@@ -18,30 +18,30 @@ namespace RestaurantAPI.Controllers
 
         [HttpGet("{dishId}")]
         [AllowAnonymous]
-        public ActionResult<DishDto> GetById([FromRoute]int restaurantId, [FromRoute]int dishId)
+        public async Task<ActionResult<DishDto>> GetByIdAsync([FromRoute]int restaurantId, [FromRoute]int dishId)
         {
-            return Ok(_dishService.GetById(restaurantId, dishId));
+            return Ok(await _dishService.GetByIdAsync(restaurantId, dishId));
         }
 
         [HttpGet]
         [Authorize(Policy = "HasNationality")]
-        public ActionResult<IEnumerable<DishDto>> GetAll([FromRoute] int restaurantId)
+        public async Task<IEnumerable<DishDto>> GetAllAsync([FromRoute] int restaurantId)
         {
-            return Ok(_dishService.GetAll(restaurantId));
+            return await _dishService.GetAllAsync(restaurantId);
         }
 
         [HttpPost]
-        public ActionResult Create([FromRoute]int restaurantId, [FromBody]DishDto dishDto)
+        public async Task<ActionResult> Create([FromRoute]int restaurantId, [FromBody]DishDto dishDto)
         {
-            var id = _dishService.Create(restaurantId, dishDto);
+            var id = await _dishService.CreateAsync(restaurantId, dishDto);
 
             return Created($"/api/{restaurantId}/dish/{id}", null);
         }
 
         [HttpDelete]
-        public ActionResult DeleteAll([FromRoute] int restaurantId)
+        public async Task<ActionResult> DeleteAll([FromRoute] int restaurantId)
         {
-            _dishService.RemoveAll(restaurantId);
+            await _dishService.RemoveAllAsync(restaurantId);
 
             return NoContent();
         }

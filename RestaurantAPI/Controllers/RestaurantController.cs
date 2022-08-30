@@ -29,15 +29,15 @@ namespace RestaurantAPI.Controllers
 
         [HttpGet]
         [Authorize(Policy = "Min20Years")]
-        public ActionResult<IEnumerable<RestaurantDto>> GetAll()
+        public async Task<IEnumerable<RestaurantDto>> GetAllAsync()
         {
-            return Ok(_restaurantService.GetAll());
+            return await _restaurantService.GetAllAsync();
         }
 
         [HttpGet("{id}")]
-        public ActionResult<RestaurantDto> Get([FromRoute]int id)
+        public async Task<ActionResult<RestaurantDto>> GetAsync([FromRoute]int id)
         {
-            var restaurant = _restaurantService.GetById(id);
+            var restaurant = await _restaurantService.GetByIdAsync(id);
 
             if(restaurant == null)
                 return NotFound();
@@ -48,27 +48,27 @@ namespace RestaurantAPI.Controllers
         }
 
         [HttpPost]
-        public ActionResult CreateRestaurant([FromBody]RestaurantDto restaurantDto)
+        public async Task<ActionResult> CreateRestaurantAsync([FromBody]RestaurantDto restaurantDto)
         {
             var userId = User?.FindFirst(u => u.Type == ClaimTypes.NameIdentifier)?.Value;
 
-            var id = _restaurantService.Create(restaurantDto, int.Parse(userId));
+            var id = await _restaurantService.CreateAsync(restaurantDto);
 
             return Created($"/api/restaurant/{id}", null);
         }
 
         [HttpDelete("{id}")]
-        public ActionResult Delete([FromRoute] int id)
+        public async Task<ActionResult> DeleteAsync([FromRoute] int id)
         {
-            _restaurantService.Delete(id, User);
+            await _restaurantService.DeleteAsync(id);
 
              return NoContent();
         }
 
         [HttpPut("{id}")]
-        public ActionResult Update([FromRoute] int id, [FromBody]UpdateRestaurantDto putRestaurantDto)
+        public async Task<ActionResult> UpdateAsync([FromRoute] int id, [FromBody]UpdateRestaurantDto putRestaurantDto)
         {
-            _restaurantService.Update(id, putRestaurantDto, User);
+            await _restaurantService.UpdateAsync(id, putRestaurantDto);
 
             return Ok();
         }

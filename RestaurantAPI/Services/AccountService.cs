@@ -13,9 +13,9 @@ namespace RestaurantAPI.Services
 {
     public interface IAccountService
     {
-        void RegisterUser(RegisterUserDto registerUserDto);
-        string Login(LoginUserDto loginUserDto);
-        void ChangeRoleForUser(int userId, int roleId);
+        Task RegisterUserAsync(RegisterUserDto registerUserDto);
+        Task<string> LoginAsync(LoginUserDto loginUserDto);
+        Task ChangeRoleForUserAsync(int userId, int roleId);
     }
     public class AccountService : IAccountService
     {
@@ -36,18 +36,18 @@ namespace RestaurantAPI.Services
             _authenticationSettings = authenticationSettings;
         }
 
-        public void RegisterUser(RegisterUserDto registerUserDto)
+        public async Task RegisterUserAsync(RegisterUserDto registerUserDto)
         {
             var user = _mapper.Map<User>(registerUserDto);
 
             user.PasswordHash = _passwordHasher.HashPassword(user, registerUserDto.Password);
             user.RoleId = 1;
 
-            _context.Users.Add(user);
-            _context.SaveChanges();
+            await _context.Users.AddAsync(user);
+            await _context.SaveChangesAsync();
         }
 
-        public void ChangeRoleForUser(int userId, int roleId)
+        public async Task ChangeRoleForUserAsync(int userId, int roleId)
         {
             var user = _context.Users
                 .Include(u => u.Role)
@@ -56,7 +56,7 @@ namespace RestaurantAPI.Services
             if(user is null)
                 throw new BadUserOrRoleException("Invalid userId or roleId");
 
-            var role = _context.Roles.SingleOrDefault(r => r.Id == roleId);
+            var role = await _context.Roles.SingleOrDefaultAsync(r => r.Id == roleId);
 
             if(role is null)
                 throw new BadUserOrRoleException("Invalid userId or roleId");
@@ -64,13 +64,13 @@ namespace RestaurantAPI.Services
             user.RoleId = roleId;
             user.Role = role;
 
-            _context.SaveChanges();                    
+            await _context.SaveChangesAsync();                    
         }
-        public string Login(LoginUserDto loginUserDto)
+        public async Task<string> LoginAsync(LoginUserDto loginUserDto)
         {
-            var user = _context.Users
+            var user = await _context.Users
                 .Include(c=> c.Role)
-                .SingleOrDefault(u => u.Email == loginUserDto.Email);
+                .SingleOrDefaultAsync(u => u.Email == loginUserDto.Email);
 
             if(user is null)
                 throw new BadLoginException("Invalid email or password");

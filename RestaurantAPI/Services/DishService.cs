@@ -9,10 +9,10 @@ namespace RestaurantAPI.Services
 {
     public interface IDishService
     {
-        int Create(int restaurantId, DishDto dishDto);
-        DishDto GetById(int restaurantId, int dishId);
-        IEnumerable<DishDto> GetAll(int restaurantId);
-        void RemoveAll(int restaurantId);
+        Task<int> CreateAsync(int restaurantId, DishDto dishDto);
+        Task<DishDto> GetByIdAsync(int restaurantId, int dishId);
+        Task<IEnumerable<DishDto>> GetAllAsync(int restaurantId);
+        Task RemoveAllAsync(int restaurantId);
     }
     public class DishService : IDishService
     {
@@ -24,12 +24,12 @@ namespace RestaurantAPI.Services
             _context = context;
             _mapper = mapper;
         }
-        public DishDto GetById(int restaurantId, int dishId)
+        public async Task<DishDto> GetByIdAsync(int restaurantId, int dishId)
         {
-            var restaurant = GetRestaurantById(restaurantId);
+            var restaurant = await GetRestaurantById(restaurantId);
 
-            var dish = _context.Dishes
-                ?.SingleOrDefault(d => d.Id == dishId);
+            var dish = await _context.Dishes
+                .SingleOrDefaultAsync(d => d.Id == dishId);
 
             if(dish == null)
                 throw new NotFoundException("Dish not found");
@@ -37,9 +37,9 @@ namespace RestaurantAPI.Services
             return _mapper.Map<DishDto>(dish);
         }
 
-        public IEnumerable<DishDto> GetAll(int restaurantId)
+        public async Task<IEnumerable<DishDto>> GetAllAsync(int restaurantId)
         {
-            var restaurant = GetRestaurantById(restaurantId);
+            var restaurant = await GetRestaurantById(restaurantId);
 
             var dishes = _context.Dishes;
 
@@ -49,32 +49,32 @@ namespace RestaurantAPI.Services
             return _mapper.Map<IEnumerable<DishDto>>(dishes);
         }
 
-        public int Create(int restaurantId, DishDto dishDto)
+        public async Task<int> CreateAsync(int restaurantId, DishDto dishDto)
         {
-            var restaurant = GetRestaurantById(restaurantId);
+            var restaurant = await GetRestaurantById(restaurantId);
 
             var dish = _mapper.Map<Dish>(dishDto);
             dish.RestaurantId = restaurantId;
 
             restaurant.Dishes.Add(dish);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return dish.Id;
         }
 
-        public void RemoveAll(int restaurantId)
+        public async Task RemoveAllAsync(int restaurantId)
         {
-            var restaurant = GetRestaurantById(restaurantId);
+            var restaurant = await GetRestaurantById(restaurantId);
 
             _context.Remove(restaurant.Dishes);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
-        public Restaurant GetRestaurantById(int restaurantId)
+        public async Task<Restaurant> GetRestaurantById(int restaurantId)
         {
-            var restaurant = _context
-                ?.Restaurants
-                ?.SingleOrDefault(x => x.Id == restaurantId);
+            var restaurant = await _context
+                .Restaurants
+                .SingleOrDefaultAsync(x => x.Id == restaurantId);
 
             if(restaurant == null)
                 throw new NotFoundException("Dish not found");
