@@ -1,25 +1,29 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using RestaurantAPI.Entities;
+using System.Security.Claims;
 
 namespace RestaurantAPI.Authorization
 {
     public class CreatedRestaurantRequirmentHandler : AuthorizationHandler<CreatedRestaurantRequirment>
     {
+        private readonly RestaurantDbContext _restaurantDbContext;
+        public CreatedRestaurantRequirmentHandler(RestaurantDbContext restaurantDbContext)
+        {
+            _restaurantDbContext = restaurantDbContext;
+        }
         protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, CreatedRestaurantRequirment requirement)
         {
-            var createdRestaurant = context.User.FindFirst(u => u.Type == "CreatedRestaurants")?.Value;
+            var id = int.Parse(context.User.FindFirst(u => u.Type == ClaimTypes.NameIdentifier)?.Value);
 
-            if(!string.IsNullOrEmpty(createdRestaurant))
+            var createdRestaurants = _restaurantDbContext
+                .Restaurants.Count(r => r.Id == id);
+
+            if(createdRestaurants > requirement.MinimumCreatedRestaurant)
             {
-                var restaurantsCount = int.Parse(createdRestaurant);
-
-                if(restaurantsCount >= requirement.CreatedRestaurant)
-                {
-                    context.Succeed(requirement);
-                }
-            }
+                context.Succeed(requirement);
+            }    
 
             return Task.CompletedTask;
-
         }
     }
 }
