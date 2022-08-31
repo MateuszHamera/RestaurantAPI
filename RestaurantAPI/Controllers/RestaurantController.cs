@@ -28,9 +28,9 @@ namespace RestaurantAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<IEnumerable<RestaurantDto>> GetAllAsync([FromQuery]string searchPhrase)
+        public async Task<IEnumerable<RestaurantDto>> GetAllAsync(RestaurantQuery query)
         {
-            return await _restaurantService.GetAllAsync(searchPhrase);
+            return await _restaurantService.GetAllAsync(query);
         }
 
         [HttpGet("{id}")]
