@@ -28,14 +28,14 @@ namespace RestaurantAPI.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "CreatedRestaurants")]
-        public async Task<IEnumerable<RestaurantDto>> GetAllAsync()
+        public async Task<IEnumerable<RestaurantDto>> GetAllAsync([FromQuery]string searchPhrase)
         {
-            return await _restaurantService.GetAllAsync();
+            return await _restaurantService.GetAllAsync(searchPhrase);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<RestaurantDto>> GetAsync([FromRoute]int id)
+        [Authorize(Policy = "CreatedRestaurants")]
+        public async Task<ActionResult<RestaurantDto>> GetAsync(int id)
         {
             var restaurant = await _restaurantService.GetByIdAsync(id);
 
@@ -48,7 +48,7 @@ namespace RestaurantAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> CreateRestaurantAsync([FromBody]RestaurantDto restaurantDto)
+        public async Task<ActionResult> CreateRestaurantAsync(RestaurantDto restaurantDto)
         {
             var userId = User?.FindFirst(u => u.Type == ClaimTypes.NameIdentifier)?.Value;
 
@@ -58,7 +58,7 @@ namespace RestaurantAPI.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteAsync([FromRoute] int id)
+        public async Task<ActionResult> DeleteAsync(int id)
         {
             await _restaurantService.DeleteAsync(id);
 
@@ -66,7 +66,7 @@ namespace RestaurantAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateAsync([FromRoute] int id, [FromBody]UpdateRestaurantDto putRestaurantDto)
+        public async Task<ActionResult> UpdateAsync(int id, UpdateRestaurantDto putRestaurantDto)
         {
             await _restaurantService.UpdateAsync(id, putRestaurantDto);
 

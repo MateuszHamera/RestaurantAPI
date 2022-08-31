@@ -12,7 +12,7 @@ namespace RestaurantAPI.Services
     public interface IRestaurantService
     {
         Task<RestaurantDto> GetByIdAsync(int id);
-        Task<IEnumerable<RestaurantDto>> GetAllAsync();
+        Task<IEnumerable<RestaurantDto>> GetAllAsync(string searchPhrase);
         Task<int> CreateAsync(RestaurantDto restaurantDto);
         Task DeleteAsync(int id);
         Task UpdateAsync(int id, UpdateRestaurantDto updateRestaurantDto);
@@ -50,17 +50,20 @@ namespace RestaurantAPI.Services
                 .SingleOrDefaultAsync(x => x.Id == id);
 
             if(restaurant == null)
-                throw new NotFoundException("Restaurant not found"); 
+                throw new NotFoundException("Restaurant not found");
 
             return _mapper.Map<RestaurantDto>(restaurant);
         }
 
-        public async Task<IEnumerable<RestaurantDto>> GetAllAsync()
+        public async Task<IEnumerable<RestaurantDto>> GetAllAsync(string searchPhrase)
         {
             var restaurants = await _restaurantDbContext
                 .Restaurants
                 .Include(x => x.Address)
                 .Include(x => x.Dishes)
+                .Where(r => searchPhrase == null 
+                || r.Name.ToLower().Contains(searchPhrase) 
+                || r.Description.Contains(searchPhrase))
                 .ToListAsync();
 
             return _mapper.Map<List<RestaurantDto>>(restaurants);
