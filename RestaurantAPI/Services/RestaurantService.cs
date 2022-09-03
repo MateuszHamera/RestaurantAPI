@@ -12,7 +12,7 @@ namespace RestaurantAPI.Services
     public interface IRestaurantService
     {
         Task<RestaurantDto> GetByIdAsync(int id);
-        Task<IEnumerable<RestaurantDto>> GetAllAsync(RestaurantQuery query);
+        Task<PageResult<RestaurantDto>> GetAllAsync(RestaurantQuery query);
         Task<int> CreateAsync(RestaurantDto restaurantDto);
         Task DeleteAsync(int id);
         Task UpdateAsync(int id, UpdateRestaurantDto updateRestaurantDto);
@@ -55,20 +55,29 @@ namespace RestaurantAPI.Services
             return _mapper.Map<RestaurantDto>(restaurant);
         }
 
-        public async Task<IEnumerable<RestaurantDto>> GetAllAsync(RestaurantQuery query)
+        public async Task<PageResult<RestaurantDto>> GetAllAsync(RestaurantQuery query)
         {
-            var restaurants = await _restaurantDbContext
-                .Restaurants
+            var baseQuery = _restaurantDbContext.Restaurants
                 .Include(x => x.Address)
                 .Include(x => x.Dishes)
-                .Where(r => query.SearchPhrase == null 
-                || r.Name.ToLower().Contains(query.SearchPhrase) 
-                || r.Description.Contains(query.SearchPhrase))
+                .Where(r => query.SearchPhrase == null
+                || r.Name.ToLower().Contains(query.SearchPhrase)
+                || r.Description.Contains(query.SearchPhrase));
+
+            var restaurants = await baseQuery
                 .Skip(query.PageNumber * (query.PageSize - 1))
                 .Take(query.PageSize)
                 .ToListAsync();
 
-            return _mapper.Map<List<RestaurantDto>>(restaurants);
+            var restaurantsDto = _mapper.Map<List<RestaurantDto>>(restaurants);
+
+            var result = new PageResult<RestaurantDto>(
+                restaurantsDto, 
+                query.PageNumber, 
+                query.PageSize, 
+                baseQuery.Count());
+
+            return result;
         }
 
         public async Task<int> CreateAsync(RestaurantDto restaurantDto)

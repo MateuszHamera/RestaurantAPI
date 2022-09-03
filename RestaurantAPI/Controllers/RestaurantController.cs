@@ -28,7 +28,7 @@ namespace RestaurantAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<IEnumerable<RestaurantDto>> GetAllAsync(RestaurantQuery query)
+        public async Task<PageResult<RestaurantDto>> GetAllAsync(RestaurantQuery query)
         {
             return await _restaurantService.GetAllAsync(query);
         }
