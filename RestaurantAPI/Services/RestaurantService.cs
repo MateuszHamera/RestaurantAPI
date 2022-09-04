@@ -6,6 +6,7 @@ using RestaurantAPI.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using RestaurantAPI.Authorization;
+using System.Linq.Expressions;
 
 namespace RestaurantAPI.Services
 {
@@ -63,6 +64,22 @@ namespace RestaurantAPI.Services
                 .Where(r => query.SearchPhrase == null
                 || r.Name.ToLower().Contains(query.SearchPhrase)
                 || r.Description.Contains(query.SearchPhrase));
+
+            if(!string.IsNullOrEmpty(query.SortBy))
+            {
+                var columnSelectors = new Dictionary<string, Expression<Func<Restaurant, object>>>
+                {
+                    { nameof(Restaurant.Name), r => r.Name },
+                    { nameof(Restaurant.Description), r => r.Description },
+                    { nameof(Restaurant.Category), r => r.Category }
+                };
+
+                var selectorColumn = columnSelectors[query.SortBy];
+
+                baseQuery = query.SortDirection == SortDirection.Ascending ?
+                    baseQuery.OrderBy(selectorColumn) :
+                    baseQuery.OrderByDescending(q => q.Name);
+            }
 
             var restaurants = await baseQuery
                 .Skip(query.PageNumber * (query.PageSize - 1))
