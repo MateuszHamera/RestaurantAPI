@@ -86,6 +86,7 @@ using(var serviceScope = app.Services.CreateScope())
     seed.Seed();
 }
 
+app.UseStaticFiles();
 app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseMiddleware<RequestTimeMiddleware>();
 

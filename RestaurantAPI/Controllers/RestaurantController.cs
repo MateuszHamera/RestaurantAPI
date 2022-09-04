@@ -34,7 +34,7 @@ namespace RestaurantAPI.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Policy = "CreatedRestaurants")]
+        //[Authorize(Policy = "CreatedRestaurants")]
         public async Task<ActionResult<RestaurantDto>> GetAsync(int id)
         {
             var restaurant = await _restaurantService.GetByIdAsync(id);
