@@ -11,7 +11,7 @@
             TotalItemsCount = totalItemsCount;
         }
 
-        List<T> Items { get; set; }
+        public List<T> Items { get; set; }
         public int TotalPages { get; set; }
         public int ItemFrom { get; set; }
         public int ItemTo { get; set; }

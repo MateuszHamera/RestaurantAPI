@@ -10,7 +10,7 @@ namespace RestaurantAPI.Models.Validators
         {   nameof(Restaurant.Name), nameof(Restaurant.Category), nameof(Restaurant.Description)};
         public RestaurantQueryValidator()
         {
-            RuleFor(q => q.PageNumber).GreaterThanOrEqualTo(1);
+            RuleFor(q => q.PageNumber).GreaterThanOrEqualTo(0);
             RuleFor(q => q.PageSize).Custom((value, context) =>
             {
                 if(!allowedPageSize.Contains(value))
